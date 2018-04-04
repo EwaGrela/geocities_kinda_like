@@ -9,7 +9,6 @@ UPDATE film SET category_id = (SELECT category_id FROM helper WHERE film.title =
 DROP VIEW helper;
 DROP TABLE film_category;
 
--- WRONG BEHAVIOR|3 - tytul do psrawdzania
 
 
 

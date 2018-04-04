@@ -83,7 +83,7 @@ def add_cities():
 		db.commit()
 		next_maxim = db.execute('select max(city_id) as next_maxim from city').fetchone()
 		next_max = next_maxim['next_maxim']
-		last_record = db.execute('SELECT country_id, city as city_name, city_id from city where city_id = :next_max', {"next_max": next_max}).fetchone()
+		last_record = db.execute('SELECT country_id, city AS city_name, city_id FROM city WHERE city_id = :next_max', {"next_max": next_max}).fetchone()
 		lr_dict = {"country_id": last_record['country_id'], "city_name": last_record['city_name'], "city_id": last_record['city_id']}
 		lr_dict =jsonify(lr_dict)
 		return lr_dict
@@ -99,8 +99,8 @@ def add_cities():
 def lang_roles():
 	title = "Roles in language"
 	db = get_db()
-	view = db.execute('CREATE view if not exists lang_roles as select film.film_id, film.language_id, film_list.actors, language.name from language left join film on language.language_id = film.language_id join film_list on film.film_id = film_list.FID')
-	langs = db.execute('SELECT * from language')
+	view = db.execute('CREATE view if not exists lang_roles AS SELECT film.film_id, film.language_id, film_list.actors, language.name FROM language LEFT JOIN film ON language.language_id = film.language_id JOIN film_list ON film.film_id = film_list.FID')
+	langs = db.execute('SELECT * FROM language')
 	results = {}
 	for lang in langs:
 		row = db.execute('select name, count(film_id || actors) as result from lang_roles group by name having name = :lang', {'lang': lang['name']}).fetchone()
