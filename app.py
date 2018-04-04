@@ -15,6 +15,8 @@ import sqlite3
 app = Flask(__name__)
 
 DATABASE = "database.db"
+# DATABASE = "copy.db"
+
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -49,6 +51,8 @@ def cities():
 	if cn is None:
 		if lim is not None and offs is not None:
 			cities = db.execute('SELECT city FROM city ORDER BY city COLLATE NOCASE ASC LIMIT :lim OFFSET :offs', {'lim':int(lim), 'offs':(int(offs)-1)*int(lim)}).fetchall()
+		elif lim is not None and offs is None:
+			cities = db.execute('SELECT city FROM city ORDER BY city COLLATE NOCASE ASC LIMIT :lim', {'lim':int(lim)}).fetchall()
 		else:
 			cities = db.execute('SELECT city FROM city ORDER BY city COLLATE NOCASE ASC').fetchall()
 	else:
@@ -56,25 +60,20 @@ def cities():
 			cities = db.execute(
 			'SELECT city FROM city WHERE country_id = (SELECT country_id FROM country WHERE country = :country_name) ORDER BY city COLLATE NOCASE ASC LIMIT :lim OFFSET :offs', 
 			{'country_name': cn, 'lim':int(lim), 'offs':(int(offs)-1)*int(lim)}).fetchall()
+		elif lim is not None and offs is None:
+			cities = db.execute(
+			'SELECT city FROM city WHERE country_id = (SELECT country_id FROM country WHERE country = :country_name) ORDER BY city COLLATE NOCASE ASC LIMIT :lim', 
+			{'country_name': cn, 'lim':int(lim)}).fetchall()
 		else:	
 			cities = db.execute(
 			'SELECT city FROM city WHERE country_id = (SELECT country_id FROM country WHERE country = :country_name) ORDER BY city COLLATE NOCASE ASC', 
 			{'country_name': cn}).fetchall()
-	c = []
-	for city in cities:
-		c.append(city['city'])
+	c = [city['city'] for city in cities]
 	return jsonify(c)
 
 def add_cities():
 	data = request.get_json()
-	print(data, type(data))
 	db = get_db()
-	print(data["country_id"])
-	# keys = tuple(data.keys())
-	# vals = tuple(data.values())
-	# print(keys)
-	# print(vals)
-
 	ids = db.execute('SELECT DISTINCT country_id FROM city').fetchall()
 	maxim = db.execute('select max(city_id) as maxim from city').fetchone()
 	idxs = [i["country_id"] for i in ids]
@@ -82,11 +81,16 @@ def add_cities():
 		created = db.execute('INSERT INTO city (city_id, city, country_id, last_update) VALUES (:city_id, :city, :country_id, :last_update)', 
 			{'city_id':(maxim['maxim']+1), 'city': data['city_name'], 'country_id':data['country_id'], 'last_update': str(datetime.utcnow())})
 		db.commit()
-		print(created, type(created))
-		res = {}
-		return make_response('added', 200)
+		next_maxim = db.execute('select max(city_id) as next_maxim from city').fetchone()
+		next_max = next_maxim['next_maxim']
+		last_record = db.execute('SELECT country_id, city as city_name, city_id from city where city_id = :next_max', {"next_max": next_max}).fetchone()
+		lr_dict = {"country_id": last_record['country_id'], "city_name": last_record['city_name'], "city_id": last_record['city_id']}
+		lr_dict =jsonify(lr_dict)
+		return lr_dict
 	else:
-		return make_response('bad country_id!', 400, {'error' : 'wrong country_id'})
+		err = {"error": "Invalid country_id" }
+		err = jsonify(err)
+		return make_response(err, 400)
 
 	return "ok"
 
@@ -107,6 +111,7 @@ def lang_roles():
 	return jsonify(results)
 
 		
+
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import sqlite3
 
 conn = sqlite3.connect('database.db')
+# conn = sqlite3.connect('copy.db')
 c = conn.cursor()
 
 with open('sqlite-sakila-schema.sql', 'r', encoding='utf-8') as create_file:
