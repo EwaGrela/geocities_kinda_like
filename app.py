@@ -15,8 +15,6 @@ import sqlite3
 app = Flask(__name__)
 
 DATABASE = "database.db"
-# DATABASE = "copy.db"
-
 
 def get_db():
     db = getattr(g, '_database', None)
