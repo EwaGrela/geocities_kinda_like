@@ -73,13 +73,13 @@ def add_cities():
 	data = request.get_json()
 	db = get_db()
 	ids = db.execute('SELECT DISTINCT country_id FROM city').fetchall()
-	maxim = db.execute('select max(city_id) as maxim from city').fetchone()
+	maxim = db.execute('SELECT MAX(city_id) AS maxim FROM city').fetchone()
 	idxs = [i["country_id"] for i in ids]
 	if data["country_id"] in idxs:
 		created = db.execute('INSERT INTO city (city_id, city, country_id, last_update) VALUES (:city_id, :city, :country_id, :last_update)', 
 			{'city_id':(maxim['maxim']+1), 'city': data['city_name'], 'country_id':data['country_id'], 'last_update': str(datetime.utcnow())})
 		db.commit()
-		next_maxim = db.execute('select max(city_id) as next_maxim from city').fetchone()
+		next_maxim = db.execute('SELECT MAX(city_id) AS next_maxim FROM city').fetchone()
 		next_max = next_maxim['next_maxim']
 		last_record = db.execute('SELECT country_id, city AS city_name, city_id FROM city WHERE city_id = :next_max', {"next_max": next_max}).fetchone()
 		lr_dict = {"country_id": last_record['country_id'], "city_name": last_record['city_name'], "city_id": last_record['city_id']}
@@ -101,7 +101,7 @@ def lang_roles():
 	langs = db.execute('SELECT * FROM language')
 	results = {}
 	for lang in langs:
-		row = db.execute('select name, count(film_id || actors) as result from lang_roles group by name having name = :lang', {'lang': lang['name']}).fetchone()
+		row = db.execute('SELECT name, COUNT(film_id || actors) AS result FROM lang_roles GROUP BY name HAVING name = :lang', {'lang': lang['name']}).fetchone()
 		if row is not None:
 			results[lang['name']] = row['result']
 		else:
