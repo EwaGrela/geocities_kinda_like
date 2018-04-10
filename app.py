@@ -41,7 +41,6 @@ def all_cities():
 	elif request.method == "POST":
 		return add_cities()
 def cities():
-	title = "All cities"
 	cn = request.args.get('country_name')
 	lim = request.args.get('per_page')
 	offs = request.args.get('page')
@@ -95,7 +94,6 @@ def add_cities():
 
 @app.route("/lang_roles")
 def lang_roles():
-	title = "Roles in language"
 	db = get_db()
 	view = db.execute('CREATE view if not exists lang_roles AS SELECT film.film_id, film.language_id, film_list.actors, language.name FROM language LEFT JOIN film ON language.language_id = film.language_id JOIN film_list ON film.film_id = film_list.FID')
 	langs = db.execute('SELECT * FROM language')
